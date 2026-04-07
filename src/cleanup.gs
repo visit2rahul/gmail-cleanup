@@ -156,35 +156,42 @@ function bulkCleanup() {
 
   var startTime = new Date().getTime();
   var totalTrashed = 0;
+  var timeLimitHit = false;
 
-  domains.forEach(function(domain) {
+  for (var i = 0; i < domains.length; i++) {
+    if (timeLimitHit) break;
+
+    var domain = domains[i];
     // Safety: explicitly exclude Primary to never touch important emails
     var query = 'from:@' + domain + ' -category:primary';
     var threads = GmailApp.search(query, 0, 100);
     var count = 0;
 
     while (threads.length > 0) {
-      threads.forEach(function(thread) {
-        thread.moveToTrash();
+      for (var j = 0; j < threads.length; j++) {
+        threads[j].moveToTrash();
         count++;
-      });
+      }
 
       // Respect Apps Script 6-minute execution limit
       if (new Date().getTime() - startTime > 5 * 60 * 1000) {
         Logger.log('Approaching time limit. Stopping. Run again to continue.');
         totalTrashed += count;
         Logger.log('Trashed ' + count + ' threads from ' + domain);
-        return;
+        timeLimitHit = true;
+        break;
       }
 
       threads = GmailApp.search(query, 0, 100);
     }
 
-    totalTrashed += count;
-    if (count > 0) {
-      Logger.log('Trashed ' + count + ' threads from ' + domain);
+    if (!timeLimitHit) {
+      totalTrashed += count;
+      if (count > 0) {
+        Logger.log('Trashed ' + count + ' threads from ' + domain);
+      }
     }
-  });
+  }
 
   Logger.log('\nTotal: trashed ' + totalTrashed + ' threads');
 }

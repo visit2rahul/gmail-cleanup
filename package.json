@@ -1,0 +1,29 @@
+{
+  "name": "gmail-inbox-sweeper",
+  "version": "1.0.0",
+  "description": "Google Apps Script that automatically cleans up your Gmail inbox — discover spam senders, block by domain, purge old promotions, schedule daily cleanup.",
+  "author": "Rahul Joshi",
+  "license": "MIT",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/visit2rahul/gmail-inbox-sweeper.git"
+  },
+  "bugs": {
+    "url": "https://github.com/visit2rahul/gmail-inbox-sweeper/issues"
+  },
+  "homepage": "https://github.com/visit2rahul/gmail-inbox-sweeper#readme",
+  "keywords": [
+    "gmail",
+    "cleanup",
+    "inbox",
+    "google-apps-script",
+    "automation",
+    "spam"
+  ],
+  "devDependencies": {
+    "jest": "^30.3.0"
+  }
+}

@@ -5,3 +5,4 @@
 .clasp*
 .env
 my-blocklist.gs
+node_modules/
