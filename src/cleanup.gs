@@ -1,17 +1,33 @@
 /**
  * Gmail Bulk Cleanup — Google Apps Script
  *
- * Functions:
- *   discoverSpam()       — Read-only recon. Shows top senders by volume.
- *   bulkCleanup()        — Trashes emails from blocked domains (skips Primary).
- *   purgeOldPromotions() — Trashes promotions older than configured threshold.
- *   dailyAutoClean()     — Runs both cleanup functions. Attach to a daily trigger.
- *   installTrigger()     — One-time: sets up the daily 3am trigger.
- *   removeTriggers()     — Removes all triggers created by this script.
+ * Automatically discovers spam senders in your inbox, lets you block them
+ * by domain, and schedules daily cleanup. Never touches your Primary inbox.
+ * Everything goes to Trash (recoverable for 30 days).
+ *
+ * Quick start:
+ *   1. Run configureDefaults()    — one-time setup
+ *   2. Run discoverSpam()         — see who's spamming you (read-only, changes nothing)
+ *   3. Run addBlocks()            — add unwanted domains (edit the function first)
+ *   4. Run bulkCleanup()          — trash emails from blocked domains
+ *   5. Run installTrigger()       — schedule daily auto-cleanup at 3am
+ *
+ * All functions:
+ *   configureDefaults()     — Initialize script settings (run once).
+ *   discoverSpam()          — Read-only scan. Ranks top senders across Promotions,
+ *                             Updates, Social, and Spam from the last 30 days.
+ *   addBlocks()             — Add domains to your block list. Edit this function
+ *                             with domains from discoverSpam(), then run once.
+ *   updateBlockedDomains()  — Programmatically add domains to the block list.
+ *   unblockDomain()         — Remove a domain from the block list.
+ *   bulkCleanup()           — Trash all emails from blocked domains (skips Primary).
+ *   purgeOldPromotions()    — Trash promotions older than 7 days (configurable).
+ *   dailyAutoClean()        — Runs bulkCleanup + purgeOldPromotions together.
+ *   installTrigger()        — Set up daily auto-cleanup trigger at 3am.
+ *   removeTriggers()        — Remove all scheduled triggers.
  *
  * Configuration is stored in Script Properties (not hardcoded).
- * Run configureDefaults() once to initialize, then use updateBlockedDomains()
- * to manage your block list without editing code.
+ * Your block list persists across script updates.
  */
 
 // ============================================================
