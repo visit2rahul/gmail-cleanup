@@ -271,14 +271,17 @@ function removeTriggers() {
 
 /**
  * Marks all unread emails as read across your entire inbox.
- * Processes in batches of 100, respects the 6-minute execution limit.
- * Run again if it hits the time limit.
+ * Processes in batches of 100, pauses for 2 seconds every 1000 threads
+ * to avoid Gmail rate limits. Respects the 6-minute execution limit.
+ * Run again if it hits the time limit — it picks up where it left off.
  */
 function markAllRead() {
   var startTime = new Date().getTime();
   var query = 'is:unread';
   var threads = GmailApp.search(query, 0, 100);
   var count = 0;
+  var BATCH_PAUSE_THRESHOLD = 1000;
+  var PAUSE_MS = 2000;
 
   while (threads.length > 0) {
     for (var i = 0; i < threads.length; i++) {
@@ -286,6 +289,13 @@ function markAllRead() {
       count++;
     }
 
+    // Pause every 1000 threads to avoid rate limits
+    if (count % BATCH_PAUSE_THRESHOLD === 0 && count > 0) {
+      Logger.log('Processed ' + count + ' threads. Pausing ' + (PAUSE_MS / 1000) + 's to avoid rate limits...');
+      Utilities.sleep(PAUSE_MS);
+    }
+
+    // Respect Apps Script 6-minute execution limit
     if (new Date().getTime() - startTime > 5 * 60 * 1000) {
       Logger.log('Approaching time limit (' + count + ' threads marked read). Run again to continue.');
       return;

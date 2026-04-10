@@ -134,6 +134,14 @@ const mockScriptApp = {
 };
 
 // ============================================================
+// Utilities mock
+// ============================================================
+
+const mockUtilities = {
+  sleep: jest.fn(),
+};
+
+// ============================================================
 // Reset function — call in beforeEach
 // ============================================================
 
@@ -149,6 +157,7 @@ function resetAllMocks() {
   mockScriptApp.newTrigger.mockClear();
   mockScriptApp.getProjectTriggers.mockClear();
   mockScriptApp.deleteTrigger.mockClear();
+  mockUtilities.sleep.mockClear();
   mockTriggerBuilder.timeBased.mockClear();
   mockTriggerBuilder.everyDays.mockClear();
   mockTriggerBuilder.atHour.mockClear();
@@ -170,6 +179,7 @@ function installGlobals() {
   global.PropertiesService = mockPropertiesService;
   global.ScriptApp = mockScriptApp;
   global.Logger = mockLogger;
+  global.Utilities = mockUtilities;
 }
 
 module.exports = {
@@ -178,6 +188,7 @@ module.exports = {
   mockScriptProperties,
   mockGmailApp,
   mockScriptApp,
+  mockUtilities,
   mockTriggerBuilder,
   createMockThread,
   createMockMessage,

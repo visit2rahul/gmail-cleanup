@@ -17,6 +17,7 @@ const {
   mockScriptProperties,
   mockGmailApp,
   mockScriptApp,
+  mockUtilities,
   mockTriggerBuilder,
   createMockThread,
   setSearchResults,
@@ -610,6 +611,38 @@ describe('markAllRead', () => {
     markAllRead();
 
     expect(mockLogger.log).toHaveBeenCalledWith('Marked 0 threads as read.');
+  });
+
+  test('pauses every 1000 threads to avoid rate limits', () => {
+    // Create 10 batches of 100 threads = 1000 total, then empty
+    var batches = [];
+    for (var b = 0; b < 10; b++) {
+      var batch = [];
+      for (var t = 0; t < 100; t++) {
+        batch.push(createMockThread('user' + (b * 100 + t) + '@test.com', 1));
+      }
+      batches.push(batch);
+    }
+    batches.push([]); // terminator
+    setSearchResults('is:unread', batches);
+
+    markAllRead();
+
+    // Should have paused once at 1000 threads
+    expect(mockUtilities.sleep).toHaveBeenCalledWith(2000);
+    expect(mockUtilities.sleep).toHaveBeenCalledTimes(1);
+  });
+
+  test('does not pause before reaching 1000 threads', () => {
+    var batch = [];
+    for (var t = 0; t < 50; t++) {
+      batch.push(createMockThread('user' + t + '@test.com', 1));
+    }
+    setSearchResults('is:unread', [[...batch], []]);
+
+    markAllRead();
+
+    expect(mockUtilities.sleep).not.toHaveBeenCalled();
   });
 
   test('handles time limit gracefully', () => {
