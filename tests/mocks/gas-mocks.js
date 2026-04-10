@@ -65,6 +65,7 @@ function createMockThread(from, messageCount) {
     getMessages: jest.fn(() => messages),
     getMessageCount: jest.fn(() => messageCount),
     moveToTrash: jest.fn(),
+    markRead: jest.fn(),
   };
 }
 

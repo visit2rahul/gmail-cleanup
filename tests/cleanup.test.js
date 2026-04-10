@@ -554,7 +554,94 @@ describe('dailyAutoClean', () => {
 });
 
 // ============================================================
-// H. addBlocks (template function)
+// H. Mark all as read
+// ============================================================
+
+describe('markAllRead', () => {
+  test('marks all unread threads as read', () => {
+    var thread1 = createMockThread('a@test.com', 1);
+    var thread2 = createMockThread('b@test.com', 1);
+    setSearchResults('is:unread', [[thread1, thread2], []]);
+
+    markAllRead();
+
+    expect(thread1.markRead).toHaveBeenCalled();
+    expect(thread2.markRead).toHaveBeenCalled();
+  });
+
+  test('searches with is:unread query', () => {
+    setSearchResults('is:unread', [[]]);
+
+    markAllRead();
+
+    var searchQuery = mockGmailApp.search.mock.calls[0][0];
+    expect(searchQuery).toBe('is:unread');
+  });
+
+  test('paginates through multiple batches', () => {
+    var batch1 = [
+      createMockThread('a@test.com', 1),
+      createMockThread('b@test.com', 1),
+    ];
+    var batch2 = [
+      createMockThread('c@test.com', 1),
+    ];
+    setSearchResults('is:unread', [batch1, batch2, []]);
+
+    markAllRead();
+
+    batch1.forEach((t) => expect(t.markRead).toHaveBeenCalled());
+    batch2.forEach((t) => expect(t.markRead).toHaveBeenCalled());
+  });
+
+  test('does not call moveToTrash (read-only operation)', () => {
+    var thread = createMockThread('a@test.com', 1);
+    setSearchResults('is:unread', [[thread], []]);
+
+    markAllRead();
+
+    expect(thread.markRead).toHaveBeenCalled();
+    expect(thread.moveToTrash).not.toHaveBeenCalled();
+  });
+
+  test('handles empty inbox (no unread emails)', () => {
+    setSearchResults('is:unread', [[]]);
+
+    markAllRead();
+
+    expect(mockLogger.log).toHaveBeenCalledWith('Marked 0 threads as read.');
+  });
+
+  test('handles time limit gracefully', () => {
+    var callCount = 0;
+    var startTime = 1000000;
+    var originalDate = global.Date;
+    global.Date = class extends originalDate {
+      getTime() {
+        callCount++;
+        if (callCount > 2) return startTime + 6 * 60 * 1000;
+        return startTime;
+      }
+      toISOString() {
+        return new originalDate().toISOString();
+      }
+    };
+
+    var threads = [createMockThread('a@test.com', 1)];
+    setSearchResults('is:unread', [threads, threads, threads]);
+
+    markAllRead();
+
+    expect(mockLogger.log).toHaveBeenCalledWith(
+      expect.stringContaining('Approaching time limit')
+    );
+
+    global.Date = originalDate;
+  });
+});
+
+// ============================================================
+// I. addBlocks (template function)
 // ============================================================
 
 describe('addBlocks', () => {

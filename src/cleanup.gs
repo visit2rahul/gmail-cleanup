@@ -23,6 +23,7 @@
  *   bulkCleanup()           — Trash all emails from blocked domains (skips Primary).
  *   purgeOldPromotions()    — Trash promotions older than 7 days (configurable).
  *   dailyAutoClean()        — Runs bulkCleanup + purgeOldPromotions together.
+ *   markAllRead()            — Mark all unread emails as read.
  *   installTrigger()        — Set up daily auto-cleanup trigger at 3am.
  *   removeTriggers()        — Remove all scheduled triggers.
  *
@@ -265,7 +266,39 @@ function removeTriggers() {
 }
 
 // ============================================================
-// STEP 5: ADD YOUR BLOCK LIST
+// STEP 5: MARK ALL AS READ
+// ============================================================
+
+/**
+ * Marks all unread emails as read across your entire inbox.
+ * Processes in batches of 100, respects the 6-minute execution limit.
+ * Run again if it hits the time limit.
+ */
+function markAllRead() {
+  var startTime = new Date().getTime();
+  var query = 'is:unread';
+  var threads = GmailApp.search(query, 0, 100);
+  var count = 0;
+
+  while (threads.length > 0) {
+    for (var i = 0; i < threads.length; i++) {
+      threads[i].markRead();
+      count++;
+    }
+
+    if (new Date().getTime() - startTime > 5 * 60 * 1000) {
+      Logger.log('Approaching time limit (' + count + ' threads marked read). Run again to continue.');
+      return;
+    }
+
+    threads = GmailApp.search(query, 0, 100);
+  }
+
+  Logger.log('Marked ' + count + ' threads as read.');
+}
+
+// ============================================================
+// STEP 6: ADD YOUR BLOCK LIST
 // ============================================================
 
 /**
